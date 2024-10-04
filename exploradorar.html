@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualização de Arquivos</title>
+   
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #0000e352;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        #fileInput {
+            display: block;
+            margin: 20px auto;
+            padding: 10px;
+            font-size: 16px;
+        }
+
+        h2 {
+            color: #333;
+            margin-top: 30px;
+        }
+
+        #fileList {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .file-item {
+            background: #32010144;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin: 10px 0;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .file-name {
+            font-size: 16px;
+            color: #000000;
+            flex-grow: 1; /* Para que o nome ocupe o espaço restante */
+        }
+
+        .file-size {
+            font-size: 14px;
+            color: #0b0b0b;
+            margin-right: 20px; /* Espaço antes dos botões */
+        }
+
+        .button {
+            background-color: #000000;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+            margin-left: 5px;
+        }
+
+        .button:hover {
+            background-color: #000000;
+        }
+
+        #fileContent {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #001c6f86;
+            border-radius: 5px;
+            background: #fff;
+        }
+
+        textarea {
+            width: 100%;
+            height: 200px;
+            margin-top: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Selecione Arquivos para Visualizar</h1>
+    <!-- Botão para selecionar arquivos -->
+    <input type="file" id="fileInput" multiple>
+
+    <!-- Lista de arquivos selecionados -->
+    <h2>Arquivos Selecionados:</h2>
+    <ul id="fileList"></ul>
+
+    <!-- Área para mostrar o conteúdo do arquivo selecionado -->
+    <div id="fileContent"></div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+        const fileContent = document.getElementById('fileContent');
+        let currentFile = null; // Para armazenar o arquivo atualmente visualizado
+
+        // Função para exibir os arquivos selecionados
+        fileInput.addEventListener('change', function() {
+            fileList.innerHTML = '';
+            fileContent.innerHTML = ''; // Limpa o conteúdo exibido
+            currentFile = null; // Reseta o arquivo atual
+
+            // Itera sobre os arquivos selecionados
+            for (const file of fileInput.files) {
+                const listItem = document.createElement('li');
+                listItem.classList.add('file-item');
+
+                const fileName = document.createElement('span');
+                fileName.classList.add('file-name');
+                fileName.textContent = file.name; // Mostra o nome do arquivo
+                
+                const fileSize = document.createElement('span');
+                fileSize.classList.add('file-size');
+                fileSize.textContent = `${(file.size / 1024).toFixed(2)} KB`; // Mostra o tamanho do arquivo em KB
+
+                const viewButton = document.createElement('button');
+                viewButton.textContent = 'Visualizar';
+                viewButton.classList.add('button');
+                viewButton.onclick = () => {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        fileContent.innerHTML = `<h3>${file.name}</h3>
+                            <textarea id="fileTextarea">${event.target.result}</textarea>
+                            <button id="saveButton" class="button">Salvar</button>`;
+                        
+                        currentFile = file; // Armazena o arquivo atual
+
+                        // Salvar as alterações
+                        document.getElementById('saveButton').onclick = () => {
+                            const editedContent = document.getElementById('fileTextarea').value;
+                            const blob = new Blob([editedContent], { type: 'text/plain' });
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = file.name; // Nome do arquivo
+                            a.click(); // Simula o clique para baixar o arquivo
+                            URL.revokeObjectURL(url); // Libera o objeto URL
+                        };
+                    };
+                    reader.readAsText(file); // Lê o arquivo como texto
+                };
+
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Excluir';
+                deleteButton.classList.add('button');
+                deleteButton.onclick = () => {
+                    fileName.textContent = ''; // Remove o nome do arquivo
+                    fileSize.textContent = ''; // Remove o tamanho do arquivo
+                };
+
+                listItem.appendChild(fileName);
+                listItem.appendChild(fileSize);
+                listItem.appendChild(viewButton);
+                listItem.appendChild(deleteButton);
+                fileList.appendChild(listItem);
+            }
+        });
+    </script>
+</body>
+</html>
